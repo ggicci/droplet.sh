@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
-#
-# ## How to use `import`
-#
-#     import "github.com/ggicci/basher/log"
-#     import "../lib/output.sh"
-#     import "https://my.remote.site/bash/util.sh"
 
-export BASHER_IMPORT_ONCE=""
-__BASHER_VENDOR_FOLDER__="vendor"
+export _BASHER_IMPORT_ONCE=""
+_BASHER_VENDOR_FOLDER="vendor"
 
 _boot::has_command() { command -v "$1" >/dev/null 2>&1; }
 _boot::debug() {
@@ -49,8 +43,8 @@ _boot::import_from_github() {
 
   local repo="$(cut -d'/' -f 1,2,3 <<< "${name}")"
   local repo_url="https://${repo}"
-  local repo_local="${__BASHER_VENDOR_FOLDER__}/${repo}"
-  local canonical_name="${__BASHER_VENDOR_FOLDER__}/${name}"
+  local repo_local="${_BASHER_VENDOR_FOLDER}/${repo}"
+  local canonical_name="${_BASHER_VENDOR_FOLDER}/${name}"
 
   # find it in the vendor folder
   if [[ -d "${repo_local}" ]]; then
@@ -95,7 +89,7 @@ _boot::already_imported_before() {
   local arr
   local IFS=:
   set -f
-  arr=( ${BASHER_IMPORT_ONCE} )
+  arr=( ${_BASHER_IMPORT_ONCE} )
 
   for x in "${arr[@]}"; do
     if [[ "$x" == "${canonical_name}" ]]; then
@@ -142,8 +136,8 @@ _boot::import_once() {
   # import (source)
   source "${canonical_name}"
   # add to imported collection
-  BASHER_IMPORT_ONCE="${BASHER_IMPORT_ONCE}:${canonical_name}"
-  export BASHER_IMPORT_ONCE
+  _BASHER_IMPORT_ONCE="${_BASHER_IMPORT_ONCE}:${canonical_name}"
+  export _BASHER_IMPORT_ONCE
   _boot::debug "import successfully: \"${name}\" --> \"${canonical_name}\""
 }
 
