@@ -1,2 +1,3 @@
-# bashutil
+# basher
+
 :shell: My bash utilities.
