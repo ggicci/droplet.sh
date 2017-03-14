@@ -22,6 +22,10 @@ import "./foo.sh"
 import "../3rd/time.sh"
 
 # from github
+# try to import:
+#   github.com/ggicci/basher/log
+#   github.com/ggicci/basher/log/log.sh
+#   github.com/ggicci/basher/log.sh
 import "github.com/ggicci/basher/log"
 
 # from http

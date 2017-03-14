@@ -13,23 +13,21 @@ _boot::debug() {
 _boot::import_from_local() {
   local name="$1"
 
-  local canonical_name=""
-  if ! canonical_name="$(realpath -qe "${name}")"; then
-    _boot::debug "\"${name}\" not found"
-    return 1
-  fi
+  local canonical_name="$(realpath -q "${name}")"
+  local candidates=(
+    "${canonical_name}"
+    "${canonical_name}/$(basename "${canonical_name}").sh"
+    "${canonical_name}.sh"
+  )
 
-  if [ -d "${canonical_name}" ]; then
-    local file="$(basename "${canonical_name}").sh"
-    canonical_name="${canonical_name}/${file}"
-  fi
+  for candidate in "${candidates[@]}"; do
+    if [[ -f "${candidate}" ]]; then
+      echo "${candidate}"
+      return 0
+    fi
+  done
 
-  if [ -f "${canonical_name}" ]; then
-    echo "${canonical_name}"
-    return 0
-  fi
-
-  _boot::debug "\"${name}\" not found"
+  _boot::debug "\"${name}\" doesn't exist"
   return 1
 }
 
