@@ -14,7 +14,7 @@ source bootstrap.sh
 
 ## import
 
-After `source bootstrap.sh`, you can use `import` function to source bash scripts for avoid sourcing multiple times.
+After `source bootstrap.sh`, you can use `import` function to source bash scripts at most once.
 
 ```bash
 # import "*.sh" except "_*.sh" under directory "dir" or "${_BASHER_VENDOR_ROOT}/dir"
