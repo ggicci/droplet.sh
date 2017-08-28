@@ -11,7 +11,7 @@ BASHER_VENDOR_ROOT="vendor"
 _boot::has_command() { command -v "$1" >/dev/null 2>&1; }
 _boot::debug() {
   if [[ ${BASHER_DEBUG:-notset} == "on" ]]; then
-    printf "[DEBUG] %s\n" "$*" >&2
+    printf "[BASHER] %s\n" "$*" >&2
   fi
 }
 
