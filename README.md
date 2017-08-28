@@ -14,20 +14,16 @@ source bootstrap.sh
 
 ## import
 
-After `source bootstrap.sh`, you can use `import` function to source bash scripts from `local`, `github` and `http`. For instance:
+After `source bootstrap.sh`, you can use `import` function to source bash scripts for avoid sourcing multiple times.
 
 ```bash
-# from local
+# import "*.sh" except "_*.sh" under directory "dir" or "${_BASHER_VENDOR_ROOT}/dir"
+import "dir"
+
+# import "bar.sh" under current directory
+import "bar.sh"
+
 import "./foo.sh"
 import "../3rd/time.sh"
-
-# from github
-# try to import:
-#   github.com/ggicci/basher/log
-#   github.com/ggicci/basher/log/log.sh
-#   github.com/ggicci/basher/log.sh
-import "github.com/ggicci/basher/log"
-
-# from http
-import "http://my.site.com/src-remote/bashutil/bar.sh"
+import "/tmp/mutable.sh"
 ```

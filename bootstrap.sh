@@ -1,85 +1,63 @@
 #!/usr/bin/env bash
 
-export _BASHER_IMPORT_ONCE=""
-_BASHER_VENDOR_FOLDER="vendor"
+set -o errexit
+set -o pipefail
+set -o nounset
+
+debug::on() { set -o xtrace; }
+
+BASHER_VENDOR_ROOT="vendor"
 
 _boot::has_command() { command -v "$1" >/dev/null 2>&1; }
 _boot::debug() {
-  if [[ ${BASHER_DEBUG} == "on" ]]; then
-    printf "%s\n" "$*" >&2
+  if [[ ${BASHER_DEBUG:-notset} == "on" ]]; then
+    printf "[DEBUG] %s\n" "$*" >&2
   fi
 }
 
 _boot::import_from_local() {
   local name="$1"
 
-  local canonical_name="$(realpath -q "${name}")"
   local candidates=(
-    "${canonical_name}"
-    "${canonical_name}/$(basename "${canonical_name}").sh"
-    "${canonical_name}.sh"
+    "${name}"
   )
 
+  if [ -s "${BASHER_VENDOR_ROOT}" ]; then
+    candidates+=("${BASHER_VENDOR_ROOT}/${name}")
+  fi
+
+  local err_messages=""
+
+  local canonical_name=""
   for candidate in "${candidates[@]}"; do
-    if [[ -f "${candidate}" ]]; then
-      echo "${candidate}"
-      return 0
+    _boot::debug "candidate: ${candidate}"
+    canonical_name="$(realpath -q "${candidate}")"
+    if [ "${canonical_name}" = "" ]; then
+      err_message="${err_message}, \"${candidate}\" doesn't exist"
+      continue
     fi
+
+    if [[ "${canonical_name}" == *".sh" ]] && [[ ! -f "${canonical_name}" ]]; then
+      err_message="${err_message}, \"${canonical_name}\" is not a file"
+      continue
+    fi
+
+    if [[ "${canonical_name}" != *".sh" ]] && [[ ! -d "${canonical_name}" ]]; then
+      err_message="${err_message}, \"${canonical_name}\" is not a dir"
+      continue
+    fi
+
+    break
   done
 
-  _boot::debug "\"${name}\" doesn't exist"
-  return 1
-}
-
-_boot::import_from_github() {
-  local name="$1"
-
-  if [[ "${name}" != github.com/* ]]; then
-    _boot::debug "not a github repo"
+  if [ "${canonical_name}" = "" ]; then
+    echo "${err_message}"
     return 1
   fi
 
-  local repo="$(cut -d'/' -f 1,2,3 <<< "${name}")"
-  local repo_url="https://${repo}"
-  local repo_local="${_BASHER_VENDOR_FOLDER}/${repo}"
-  local canonical_name="${_BASHER_VENDOR_FOLDER}/${name}"
-
-  # find it in the vendor folder
-  if [[ -d "${repo_local}" ]]; then
-    if _boot::import_from_local "${canonical_name}"; then
-      return 0
-    fi
-  fi
-
-  # check git command
-  if ! _boot::has_command "git"; then
-    _boot::debug "command \"git\" not available"
-    return 1
-  fi
-
-  # clone repo from remote
-  _boot::debug "clone \"${repo_url}\" to \"${repo_local}\""
-
-  if [[ ${BASHER_DEBUG} == "on" ]]; then
-    git clone "${repo_url}" "${repo_local}"
-  else
-    git clone "${repo_url}" "${repo_local}" >/dev/null 2>&1
-  fi
-  local ret=$?
-  if [[ ${ret} -ne 0 ]]; then
-    _boot::debug "clone failed, exit code: ${ret}"
-    return 1
-  fi
-
-  _boot::debug "clone successfully, exit code: ${ret}"
-  _boot::import_from_local "${canonical_name}"
+  echo "${canonical_name}"
 }
 
-_boot::import_from_http() {
-  # TODO
-  _boot::debug "todo"
-  return 1
-}
 
 _boot::already_imported_before() {
   local canonical_name="$1"
@@ -87,10 +65,11 @@ _boot::already_imported_before() {
   local arr
   local IFS=:
   set -f
-  arr=( ${_BASHER_IMPORT_ONCE} )
+  arr=( ${_BASHER_IMPORT_ONCE:-} )
 
   for x in "${arr[@]}"; do
-    if [[ "$x" == "${canonical_name}" ]]; then
+    _boot::debug "import once check \"${x}\" vs. \"${canonical_name}\""
+    if [[ "${x}" == "${canonical_name}" ]]; then
       return 0
     fi
   done
@@ -103,40 +82,46 @@ _boot::import_once() {
 
   _boot::debug "import ${name}"
 
-  local handlers=(
-    _boot::import_from_local
-    _boot::import_from_github
-    _boot::import_from_http
-  )
-
-  local handler
   local canonical_name=""
-  for handler in "${handlers[@]}"; do
-    _boot::debug "try handler: ${handler}"
-    if canonical_name="$(${handler} "${name}")"; then
-      break
-    else
-      canonical_name=""
-    fi
-  done
+  local err_message=""
+  if canonical_name="$(_boot::import_from_local "${name}")"; then
+    :
+  else
+    err_message="${canonical_name}"
+    canonical_name=""
+  fi
 
-  if [[ "${canonical_name}" == "" ]]; then
-    >&2 echo "import error: \"${name}\""
+  if [ -z "${canonical_name}" ]; then
+    >&2 echo "import error: \"${name}\", ${err_message}"
     exit 1
   fi
 
+  # import (source)
+  if [ -d "${canonical_name}" ]; then
+    # source every .sh file under this folder
+    while read filename; do
+      _boot::import_once_file "${filename}"
+    done < <(find ${canonical_name} -maxdepth 1 -type f \( -iname "*.sh" ! -iname "_*.sh" \))
+  else
+    _boot::import_once_file "${canonical_name}"
+  fi
+}
+
+_boot::import_once_file() {
+  local filename="$1"
+
   # check whether imported before
-  if _boot::already_imported_before "${canonical_name}"; then
-    _boot::debug "import skip: \"${name}\" --> \"${canonical_name}\" already imported before"
+  if _boot::already_imported_before "${filename}"; then
+    _boot::debug "import \"${filename}\" (skip)"
     return 0
   fi
 
-  # import (source)
-  source "${canonical_name}"
+  _boot::debug "import \"${filename}\""
+  source "${filename}"
   # add to imported collection
-  _BASHER_IMPORT_ONCE="${_BASHER_IMPORT_ONCE}:${canonical_name}"
+  _BASHER_IMPORT_ONCE="${_BASHER_IMPORT_ONCE:-}:${filename}"
+  _boot::debug "_BASHER_IMPORT_ONCE=${_BASHER_IMPORT_ONCE}"
   export _BASHER_IMPORT_ONCE
-  _boot::debug "import successfully: \"${name}\" --> \"${canonical_name}\""
 }
 
 import() { _boot::import_once "$@"; }
