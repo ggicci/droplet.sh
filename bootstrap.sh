@@ -32,7 +32,7 @@ _boot::import_from_local() {
   local err_messages=""
 
   local canonical_name=""
-  for candidate in "${candidates[@]}"; do
+  for candidate in "${candidates[@]-}"; do
     _boot::debug "candidate: ${candidate}"
 
     if _boot::is_gnu_command "readlink"; then
@@ -75,7 +75,7 @@ _boot::already_imported_before() {
   set -f
   arr=( ${_BASHER_IMPORT_ONCE:-} )
 
-  for x in "${arr[@]}"; do
+  for x in "${arr[@]-}"; do
     _boot::debug "import once check \"${x}\" vs. \"${canonical_name}\""
     if [[ "${x}" == "${canonical_name}" ]]; then
       return 0
