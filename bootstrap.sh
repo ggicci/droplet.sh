@@ -9,6 +9,9 @@ debug::on() { set -o xtrace; }
 BASHER_VENDOR_ROOT="vendor"
 
 _boot::has_command() { command -v "$1" >/dev/null 2>&1; }
+
+_boot::is_gnu_command() { [[ -s "$("$1" --version 2>/dev/null | grep "GNU")" ]]; }
+
 _boot::debug() {
   if [[ ${BASHER_DEBUG:-notset} == "on" ]]; then
     printf "[BASHER] %s\n" "$*" >&2
@@ -31,7 +34,12 @@ _boot::import_from_local() {
   local canonical_name=""
   for candidate in "${candidates[@]}"; do
     _boot::debug "candidate: ${candidate}"
-    canonical_name="$(realpath -q "${candidate}")"
+
+    if _boot::is_gnu_command "readlink"; then
+      canonical_name="$(readlink -f -e -q "${candidate}")"
+    else
+      canonical_name="$(realpath -q "${candidate}")"
+    fi
     if [ "${canonical_name}" = "" ]; then
       err_message="${err_message}, \"${candidate}\" doesn't exist"
       continue
