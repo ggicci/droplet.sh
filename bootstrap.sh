@@ -10,7 +10,7 @@ BASHER_VENDOR_ROOT="vendor"
 
 _boot::has_command() { command -v "$1" >/dev/null 2>&1; }
 
-_boot::is_gnu_command() { [[ -s "$("$1" --version 2>/dev/null | grep "GNU")" ]]; }
+_boot::is_gnu_command() { [[ -n "$("$1" --version 2>/dev/null | grep "GNU")" ]]; }
 
 _boot::debug() {
   if [[ ${BASHER_DEBUG:-notset} == "on" ]]; then
@@ -25,7 +25,7 @@ _boot::import_from_local() {
     "${name}"
   )
 
-  if [ -s "${BASHER_VENDOR_ROOT}" ]; then
+  if [ -d "${BASHER_VENDOR_ROOT}" ]; then
     candidates+=("${BASHER_VENDOR_ROOT}/${name}")
   fi
 
