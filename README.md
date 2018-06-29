@@ -1,29 +1,47 @@
-# basher
+# droplet
 
-:shell: My bash utilities.
+Bootstrap of my shell world.
 
-## bootstrap
+## Getting Started
 
-You can clone this repository and source `bootstrap.sh`. Or even just wget the raw file from github and source then.
+You can clone this repository and source `droplet.sh`. Or even just wget the raw file from github and source it.
 
 ```bash
-wget --quiet "https://raw.githubusercontent.com/ggicci/basher/master/bootstrap.sh" -O "bootstrap.sh"
-
-source bootstrap.sh
+wget --quiet "https://raw.githubusercontent.com/ggicci/basher/master/droplet.sh" -O "droplet.sh"
 ```
 
-## import
+## Use "import"
 
-After `source bootstrap.sh`, you can use `import` function to source bash scripts at most once.
+First, you have to source the `droplet.sh` ([WARNING](#WARNING)):
 
 ```bash
-# import "*.sh" except "_*.sh" under directory "dir" or "${_BASHER_VENDOR_ROOT}/dir"
-import "dir"
+source droplet.sh
+```
 
-# import "bar.sh" under current directory
-import "bar.sh"
+then you can use `import` rather than `source` to make life much more easier:
+
+
+```bash
+import "foo"      # => source "{lookfor_paths}/foo/droplet.sh"
+
+import "bar.sh"   # => source "{lookfor_paths}/bar.sh"
 
 import "./foo.sh"
-import "../3rd/time.sh"
+import "../third_party/time.sh"
 import "/tmp/mutable.sh"
 ```
+
+
+## DROPLET\_SHELL\_PATH
+
+Droplet will find the scripts you wish to import in several paths by order (lookfor\_paths):
+
+  1. `.`;
+  2. `./vendor` directory;
+  3. `DROPLET_SHELL_PATH`;
+
+If `DROPLET_SHELL_PATH` is empty, `${HOME}/.droplet` will be used.
+
+## WARNING
+
+**ONLY** import **trusted** shell scripts.
