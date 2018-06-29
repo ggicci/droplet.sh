@@ -1,6 +1,6 @@
 # droplet
 
-Bootstrap of my shell world.
+Bootstrap of my shell world. From :droplet: to :ocean:.
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ wget --quiet "https://raw.githubusercontent.com/ggicci/basher/master/droplet.sh"
 
 ## Use "import"
 
-First, you have to source the `droplet.sh` ([WARNING](#WARNING)):
+First, you have to source the `droplet.sh` ([WARNING](#warning)):
 
 ```bash
 source droplet.sh
