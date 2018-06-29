@@ -1,6 +1,6 @@
 # droplet
 
-Bootstrap of my shell world. From :droplet: to :ocean:.
+Bootstrap of my shell world. Take me from :droplet: to :ocean: ~
 
 ## Getting Started
 
@@ -32,7 +32,7 @@ import "/tmp/mutable.sh"
 ```
 
 
-## DROPLET\_SHELL\_PATH
+## The lookfor paths
 
 Droplet will find the scripts you wish to import in several paths by order (lookfor\_paths):
 
