@@ -7,7 +7,7 @@ Bootstrap of my shell world. Take me from :droplet: to :ocean: ~
 You can clone this repository and source `droplet.sh`. Or even just wget the raw file from github and source it.
 
 ```bash
-wget --quiet "https://raw.githubusercontent.com/ggicci/basher/master/droplet.sh" -O "droplet.sh"
+wget --quiet "https://raw.githubusercontent.com/ggicci/droplet/master/droplet.sh" -O "droplet.sh"
 ```
 
 ## Use "import"
