@@ -18,59 +18,70 @@ _boot::debug() {
   fi
 }
 
-_boot::import_from_local() {
+_boot::lookfor_paths() {
   local name="$1"
+  
+  local candidates=()
 
-  local candidates=(
-    "${name}"
-  )
-
-  if [[ "${name}" == "."* ]] || [[ "${name}" == "."* ]]; then
-    _boot::debug "skip candidates in vendor and droplet path"
-  else
-    if [ -d "vendor" ]; then
-      candidates+=("vendor/${name}")
-    fi
-    candidates+=("${DROPLET_SHELL_PATH}/${name}")
+  if [[ "${name}" != "/"* ]]; then
+    local sourced_by_dir="$(cd "$(dirname "$0")" && pwd)"
+    candidates+=("${sourced_by_dir}")
   fi
 
-  local err_messages=""
+  if [[ "${name}" != "."* ]]; then
+    candidates+=("${sourced_by_dir}/vendor")
+    candidates+=("${DROPLET_SHELL_PATH}")
+  fi
+  echo "${candidates[@]}"
+}
 
-  local canonical_name=""
-  for candidate in "${candidates[@]-}"; do
-    _boot::debug "candidate: \"${candidate}\""
+_boot::canonical_name() {
+  local name="$1"
 
-    if _boot::is_gnu_command "readlink"; then
-      canonical_name="$(readlink -f -e -q "${candidate}")"
-    else
-      canonical_name="$(realpath -q "${candidate}")"
-    fi
-
-    if [ "${canonical_name}" = "" ]; then
-      err_message="${err_message}, \"${candidate}\" doesn't exist"
-      continue
-    fi
-
-    if [[ -d "${canonical_name}" ]]; then
-      # check droplet.sh under this directory
-      canonical_name="${canonical_name}/droplet.sh"
-      if [[ ! -e "${canonical_name}" ]]; then
-        err_message="${err_message}, \"${canonical_name}\" doesn't exist"
-        continue
-      fi
-    fi
-
-    break
-  done
-
-  if [ "${canonical_name}" = "" ]; then
-    echo "${err_message}"
-    return 1
+  if _boot::is_gnu_command "readlink"; then
+    canonical_name="$(readlink -f -e -q "${name}")"
+  else
+    canonical_name="$(realpath -q "${name}")"
   fi
 
   echo "${canonical_name}"
 }
 
+_boot::import_once() {
+  local name="$1"
+
+  _boot::debug "import \"${name}\""
+  local candidate_files=()
+
+  if [[ "${name}" == "/"* ]]; then
+    _boot::debug "  - candidate dir: (no candidate, absolute path)"
+    candidate_files+=("${name}")
+  else
+    local candidate_dirs="$(_boot::lookfor_paths "${name}")"
+    local candidate_file=""
+    for candidate_dir in ${candidate_dirs[@]-}; do
+      _boot::debug "  - candidate dir: \"${candidate_dir}\""
+
+      candidate_file="$(_boot::canonical_name "${candidate_dir}/${name}")"
+      if [[ "${candidate_file}" != "" ]]; then
+        candidate_files+=("${candidate_file}")
+      fi
+    done
+  fi
+
+  for candidate_file in ${candidate_files[@]}; do
+    if [[ -f "${candidate_file}" ]]; then
+      _boot::debug "    > candidate file: ${candidate_file} (exists)"
+      _boot::import_once_file "${candidate_file}"
+      return
+    else
+      _boot::debug "    > candidate file: ${candidate_file} (not found)"
+    fi
+  done
+
+  >&2 echo "[DROPLET] import \"${name}\" failed"
+  exit 1
+}
 
 _boot::already_imported_before() {
   local canonical_name="$1"
@@ -88,34 +99,6 @@ _boot::already_imported_before() {
   done
 
   return 1
-}
-
-_boot::import_once() {
-  local name="$1"
-
-  _boot::debug "import \"${name}\""
-
-  local canonical_name=""
-  local err_message=""
-  if canonical_name="$(_boot::import_from_local "${name}")"; then
-    :
-  else
-    err_message="${canonical_name}"
-    canonical_name=""
-  fi
-
-  if [ -z "${canonical_name}" ]; then
-    >&2 echo "import \"${name}\" failed${err_message}"
-    exit 1
-  fi
-
-  # import (source)
-  if [ -d "${canonical_name}" ]; then
-    # source droplet.sh file under this folder
-    _boot::import_once_file "${canonical_name}/droplet.sh"
-  else
-    _boot::import_once_file "${canonical_name}"
-  fi
 }
 
 _boot::import_once_file() {
@@ -136,4 +119,3 @@ _boot::import_once_file() {
 }
 
 import() { _boot::import_once "$@"; }
-
