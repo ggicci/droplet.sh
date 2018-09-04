@@ -1,5 +1,7 @@
 #!/usr/env/bin bash
 
+out__GNU_PRINTF="$( droplet::use_gnu_command printf )"
+
 # Print error information to standard error output.
 out::echo_error() { cat <<< "$@" 1>&2; }
 
@@ -34,18 +36,19 @@ out__COLOR_BOLD='1'
 out__COLOR_UNDERLINE='4'
 out__COLOR_BLINK='5'
 
-out::_printf_style() {
-  printf "${out__COLOR_CODE}$1m"
+out::printf_style() {
+  ${out__GNU_PRINTF} "${out__COLOR_CODE}$1m"
   shift 1
-  printf "${@}"
-  printf "${out__COLOR_CODE}${out__COLOR_NC}m"
+  ${out__GNU_PRINTF} "${@}"
+  ${out__GNU_PRINTF} "${out__COLOR_CODE}${out__COLOR_NC}m"
 }
 
-out::printf_black()   { out::_printf_style "${out__COLOR_FG}${out__COLOR_BLACK}" "$@"; }
-out::printf_red()     { out::_printf_style "${out__COLOR_FG}${out__COLOR_RED}" "$@"; }
-out::printf_green()   { out::_printf_style "${out__COLOR_FG}${out__COLOR_GREEN}" "$@"; }
-out::printf_yellow()  { out::_printf_style "${out__COLOR_FG}${out__COLOR_YELLOW}" "$@"; }
-out::printf_blue()    { out::_printf_style "${out__COLOR_FG}${out__COLOR_BLUE}" "$@"; }
-out::printf_magenta() { out::_printf_style "${out__COLOR_FG}${out__COLOR_MAGENTA}" "$@"; }
-out::printf_cyan()    { out::_printf_style "${out__COLOR_FG}${out__COLOR_CYAN}" "$@"; }
-out::printf_white()   { out::_printf_style "${out__COLOR_FG}${out__COLOR_WHITE}" "$@"; }
+out::printf_none()         { ${out__GNU_PRINTF} "$@"; }
+out::printf_black()   { out::printf_style "${out__COLOR_FG}${out__COLOR_BLACK}" "$@"; }
+out::printf_red()     { out::printf_style "${out__COLOR_FG}${out__COLOR_RED}" "$@"; }
+out::printf_green()   { out::printf_style "${out__COLOR_FG}${out__COLOR_GREEN}" "$@"; }
+out::printf_yellow()  { out::printf_style "${out__COLOR_FG}${out__COLOR_YELLOW}" "$@"; }
+out::printf_blue()    { out::printf_style "${out__COLOR_FG}${out__COLOR_BLUE}" "$@"; }
+out::printf_magenta() { out::printf_style "${out__COLOR_FG}${out__COLOR_MAGENTA}" "$@"; }
+out::printf_cyan()    { out::printf_style "${out__COLOR_FG}${out__COLOR_CYAN}" "$@"; }
+out::printf_white()   { out::printf_style "${out__COLOR_FG}${out__COLOR_WHITE}" "$@"; }
