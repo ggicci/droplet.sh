@@ -43,7 +43,7 @@ If `DROPLET_SHELL_PATH` is empty, `${HOME}/.droplet` will be used.
 
 ## The Go way (my practice)
 
-Set `DROPLET_SHELL_PATH=${GOPATH}/src` to reuse the `${GOPATH}`. And then manage shell scripts project like Go and do import like Go:
+Set `DROPLET_SHELL_PATH=${GOPATH}/src` to reuse the `${GOPATH}`. And then manage shell script projects like Go and do import like Go:
 
 ```shell
 # clone a project
