@@ -37,14 +37,13 @@ out__COLOR_UNDERLINE='4'
 out__COLOR_BLINK='5'
 
 out::printf_style() {
-  printf "${out__COLOR_CODE}$1m"
+  ${out__GNU_PRINTF} "${out__COLOR_CODE}$1m"
   shift 1
   ${out__GNU_PRINTF} "${@}"
   ${out__GNU_PRINTF} "${out__COLOR_CODE}${out__COLOR_NC}m"
 }
 
-
-out::printf_none()    { printf "$@"; }
+out::printf_none()         { ${out__GNU_PRINTF} "$@"; }
 out::printf_black()   { out::printf_style "${out__COLOR_FG}${out__COLOR_BLACK}" "$@"; }
 out::printf_red()     { out::printf_style "${out__COLOR_FG}${out__COLOR_RED}" "$@"; }
 out::printf_green()   { out::printf_style "${out__COLOR_FG}${out__COLOR_GREEN}" "$@"; }
