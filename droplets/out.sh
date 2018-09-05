@@ -1,5 +1,7 @@
 #!/usr/env/bin bash
 
+out__GNU_PRINTF="$( droplet::use_gnu_command printf )"
+
 # Print error information to standard error output.
 out::echo_error() { cat <<< "$@" 1>&2; }
 
@@ -37,11 +39,12 @@ out__COLOR_BLINK='5'
 out::printf_style() {
   printf "${out__COLOR_CODE}$1m"
   shift 1
-  printf "${@}"
-  printf "${out__COLOR_CODE}${out__COLOR_NC}m"
+  ${out__GNU_PRINTF} "${@}"
+  ${out__GNU_PRINTF} "${out__COLOR_CODE}${out__COLOR_NC}m"
 }
 
-out::printf_none()         { printf "$@"; }
+
+out::printf_none()    { printf "$@"; }
 out::printf_black()   { out::printf_style "${out__COLOR_FG}${out__COLOR_BLACK}" "$@"; }
 out::printf_red()     { out::printf_style "${out__COLOR_FG}${out__COLOR_RED}" "$@"; }
 out::printf_green()   { out::printf_style "${out__COLOR_FG}${out__COLOR_GREEN}" "$@"; }
