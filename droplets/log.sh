@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-import "github.com/ggicci/droplet/droplets/out.sh"
+import "github.com/ggicci/droplet/droplets/io.sh"
 import "github.com/ggicci/droplet/droplets/moment.sh"
 
 log__LEVEL=5
@@ -30,29 +30,31 @@ log::set_level() {
 
 log::__proxy_write() {
   local levelno="$1"
-  local color="$2"
-  local level="$3"
+  local level="$2"
+  shift 2
 
   if [[ ${levelno} -gt ${log__LEVEL} ]]; then
     return
   fi
 
-  out::printf_none "$( moment::format "$( moment::now_unix_nano )" "%F %T.%N " )"
-  if [[ "${level}" == "ERRO" ]]; then
-    out::printf_${color} "["
-    out::printf_style "${out__COLOR_BLINK};${out__COLOR_UNDERLINE};${out__COLOR_FG}${out__COLOR_RED}" "${level}"
-    out::printf_${color} "]"
+
+  local time
+  time="$( moment::format "$( moment::now_unix_nano )" "%F %T.%N" )"
+
+  if [[ "${levelno}" -eq 1 ]]; then
+    io::print "${time}" -fg "#FF0000" " [${level}] " -rs "$@" "\n"
+  elif [[ "${levelno}" -eq 3 ]]; then
+    io::print "${time}" -fg "#FFFF00" " [${level}] " -rs "$@" "\n"
+  elif [[ "${levelno}" -eq 8 ]]; then
+    io::print "${time}" -fg "#666666" " [${level}] " -rs "$@" "\n"
   else
-    out::printf_${color} "[${level}]"
+    io::print "${time}" " [${level}] " "$@" "\n"
   fi
-  out::printf_none " "
-  shift 3
-  out::printf_none "$@"
-  out::printf_none "\n"
 }
 
 
-log::debug() { log::__proxy_write 8 "blue" "DEBU" "$@"; }
-log::info()  { log::__proxy_write 5 "none" "INFO" "$@"; }
-log::warn()  { log::__proxy_write 3 "yellow" "WARN" "$@"; }
-log::error() { log::__proxy_write 1 "red" "ERRO" "$@"; }
+log::debug() { log::__proxy_write 8 "DEBU" "$@"; }
+log::info()  { log::__proxy_write 5 "INFO" "$@"; }
+log::warning()  { log::__proxy_write 3 "WARN" "$@"; }
+log::error() { log::__proxy_write 1 "ERRO" "$@"; }
+

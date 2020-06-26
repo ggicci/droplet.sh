@@ -1,6 +1,5 @@
 #!/usr/env/bin bash
 
-import "github.com/ggicci/droplet/droplets/out.sh"
 import "github.com/ggicci/droplet/droplets/env.sh"
 
 moment__GNU_DATE="$( droplet::use_gnu_command date )"
