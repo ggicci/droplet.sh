@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-import "github.com/ggicci/droplet/droplets/io.sh"
-import "github.com/ggicci/droplet/droplets/moment.sh"
+_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+droplet "${_ROOT}/io.sh"
+droplet "${_ROOT}/moment.sh"
 
 log__LEVEL=5
 

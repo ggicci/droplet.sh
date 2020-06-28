@@ -2,7 +2,6 @@
 
 set -o errexit
 set -o pipefail
-set -o nounset
 
 DROPLET_SHELL_PATH=${DROPLET_SHELL_PATH:-${HOME}/.droplet}
 droplet__GNU_READLINK="readlink"
@@ -15,13 +14,13 @@ droplet::has_command() { command -v "$1" >/dev/null 2>&1; }
 
 droplet::echo_error() { cat <<< "$@" 1>&2; }
 
-droplet::is_gnu_command() { [[ -n "$( "$1" --version 2>/dev/null | grep "GNU" )" ]]; }
+droplet::is_gnu_command() { "$1" --version 2>/dev/null | grep -q "GNU"; }
 
 droplet::use_gnu_command() {
   local command="$1"
 
-  if droplet::is_gnu_command ${command}; then
-    echo ${command}
+  if droplet::is_gnu_command "${command}"; then
+    echo "${command}"
     return
   fi
 
@@ -47,11 +46,11 @@ droplet::debug() {
 
 droplet::lookfor_paths() {
   local name="$1"
-  
   local candidates=()
 
   if [[ "${name}" != "/"* ]]; then
-    local sourced_by_dir="$( cd "$( dirname "$0" )" && pwd )"
+    local sourced_by_dir
+    sourced_by_dir="$( cd "$( dirname "$0" )" && pwd )"
     candidates+=("${sourced_by_dir}")
   fi
 
@@ -78,7 +77,8 @@ droplet::import_once() {
     droplet::debug "  - candidate dir: (no candidate, absolute path)"
     candidate_files+=("${name}")
   else
-    local candidate_dirs="$( droplet::lookfor_paths "${name}" )"
+    local candidate_dirs
+    candidate_dirs="$( droplet::lookfor_paths "${name}" )"
     local candidate_file=""
     for candidate_dir in ${candidate_dirs[@]-}; do
       droplet::debug "  - candidate dir: \"${candidate_dir}\""
@@ -90,7 +90,7 @@ droplet::import_once() {
     done
   fi
 
-  for candidate_file in ${candidate_files[@]}; do
+  for candidate_file in "${candidate_files[@]}"; do
     if [[ -f "${candidate_file}" ]]; then
       droplet::debug "    > candidate file: ${candidate_file} (exists)"
       droplet::import_once_file "${candidate_file}"
@@ -132,7 +132,10 @@ droplet::import_once_file() {
   fi
 
   droplet::debug "import \"${filename}\""
+
+  # shellcheck disable=SC1090
   source "${filename}"
+
   # add to imported collection
   _DROPLET_IMPORT_ONCE="${_DROPLET_IMPORT_ONCE:-}:${filename}"
   droplet::debug "_DROPLET_IMPORT_ONCE=${_DROPLET_IMPORT_ONCE}"
@@ -143,7 +146,8 @@ droplet::env_check() {
   droplet__GNU_READLINK="$( droplet::use_gnu_command readlink )"
 }
 
-import() { droplet::import_once "$@"; }
+droplet() { droplet::import_once "$@"; }
 
 # Check environment, quit if necessary
 droplet::env_check
+

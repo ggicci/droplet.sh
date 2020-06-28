@@ -1,4 +1,4 @@
-#!/usr/env/bin bash
+#!/usr/bin/env bash
 # io
 
 # References:
@@ -12,7 +12,7 @@ io::echo_error() { cat <<< "$@" 1>&2; }
 io::_is_int() {
   local param
   for param; do
-    if [[ ! $param =~ ^[\-]?[0-9]+$ ]]; then return 1; fi
+    if [[ ! $param =~ ^[-]?[0-9]+$ ]]; then return 1; fi
   done
 }
 

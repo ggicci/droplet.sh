@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source ../droplet.sh
-import "github.com/ggicci/droplet/droplets/moment.sh"
+droplet "../droplets/moment.sh"
 
 moment::parse "$( moment::now )"
 moment::now

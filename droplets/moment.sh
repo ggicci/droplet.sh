@@ -1,6 +1,7 @@
-#!/usr/env/bin bash
+#!/usr/bin/env bash
 
-import "github.com/ggicci/droplet/droplets/env.sh"
+_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+droplet "${_ROOT}/env.sh"
 
 moment__GNU_DATE="$( droplet::use_gnu_command date )"
 

@@ -10,8 +10,9 @@ env::is_msys()    { [[ "${OSTYPE}" == "msys" ]]; }
 
 # OS type
 env::ostype() {
-  if env::is_darwin; then echo "darwin"; fi; return
-  if env::is_freebsd; then echo "freebsd"; fi; return
+  if env::is_darwin; then echo "darwin"; return; fi
+  if env::is_linux; then echo "linux"; return; fi
+  if env::is_freebsd; then echo "freebsd"; return; fi
   echo "${OSTYPE}"
 }
 

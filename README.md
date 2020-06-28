@@ -10,7 +10,7 @@ You can clone this repository and source `droplet.sh`. Or even just wget the raw
 wget --quiet "https://raw.githubusercontent.com/ggicci/droplet/master/droplet.sh" -O "droplet.sh"
 ```
 
-## Use "import"
+## Use "droplet"
 
 First, you have to source the `droplet.sh` ([WARNING](#warning)):
 
@@ -18,17 +18,17 @@ First, you have to source the `droplet.sh` ([WARNING](#warning)):
 source droplet.sh
 ```
 
-then you can use `import` rather than `source` to make life much more easier:
+then you can use `droplet` rather than `source` to make life much more easier:
 
 ```bash
-import "foo"      # => source "{lookfor_paths}/foo/droplet.sh"
+droplet "foo"      # => source "{lookfor_paths}/foo/droplet.sh"
 
-import "bar.sh"   # => source "{lookfor_paths}/bar.sh"
+droplet "bar.sh"   # => source "{lookfor_paths}/bar.sh"
 
-import "./foo.sh"               # not recommended
-import "../third_party/time.sh" # not recommended
-import "/tmp/mutable.sh"
-import "github.com/ggicci/droplet/droplets/env.sh"
+droplet "./foo.sh"               # not recommended
+droplet "../third_party/time.sh" # not recommended
+droplet "/tmp/mutable.sh"
+droplet "github.com/ggicci/droplet/droplets/env.sh"
 ```
 
 ## The lookfor paths
@@ -50,10 +50,9 @@ Set `DROPLET_SHELL_PATH=${GOPATH}/src` to reuse the `${GOPATH}`. And then manage
 go get github.com/ggicci/droplet
 
 # import scripts
-import "github.com/ggicci/droplet/droplets/out.sh"
+droplet "github.com/ggicci/droplet/droplets/io.sh"
 
-out::printf_red "RED\n"
-out::printf_green "GREEN\n"
+io::print -fg "#FF0000" "RED\n" -fg "#00FF00" "GREEN\n"
 ```
 
 ## WARNING

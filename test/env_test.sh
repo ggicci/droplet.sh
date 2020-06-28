@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-source ../droplet.sh
-import "github.com/ggicci/droplet/droplets/env.sh"
+source "../droplet.sh"
+droplet "../droplets/env.sh"
 
 echo "Your OS: $( env::ostype )"
 
