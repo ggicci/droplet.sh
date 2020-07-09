@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# moment
 
 _ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 droplet "${_ROOT}/env.sh"
