@@ -3,7 +3,7 @@
 source "../droplet.sh"
 droplet "../droplets/env.sh"
 
-echo "Your OS: $( env::ostype )"
+echo "Your OS: $( env::os )"
 
 if env::is_darwin; then
     if ! env::is_gnu_command "date" && env::has_command "gdate" && env::is_gnu_command "gdate"; then
