@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-# debug::on() { set -o xtrace; }
-
-droplet::is_darwin()  { [[ "$( uname )" == "Darwin"* ]]; }
+DROPLET_DEBUG=${DROPLET_DEBUG:-0}
 
 droplet::debug() {
-  if [[ ${DROPLET_DEBUG:-notset} == "on" ]]; then
+  if [[ ${DROPLET_DEBUG} == "1" ]]; then
     printf "[DROPLET] %s\n" "$*" >&2
   fi
 }
@@ -20,7 +18,6 @@ else
     readlink -f "$1"
   }
 fi
-
 __fallback_to_readlinkf_posix() {
   droplet::readlinkf() {
     [ "${1:-}" ] || return 1
@@ -160,4 +157,3 @@ droplet() { droplet::import_once "$@"; }
 if ! droplet::readlinkf "${BASH_SOURCE[0]}" &>/dev/null; then
   __fallback_to_readlinkf_posix
 fi
-
