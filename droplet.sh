@@ -1,47 +1,61 @@
 #!/usr/bin/env bash
 
-set -o errexit
-set -o pipefail
+# debug::on() { set -o xtrace; }
 
-DROPLET_SHELL_PATH=${DROPLET_SHELL_PATH:-${HOME}/.droplet}
-droplet__GNU_READLINK="readlink"
-
-debug::on() { set -o xtrace; }
-
-droplet::is_darwin()  { [[ "${OSTYPE}" == "darwin"* ]]; }
-
-droplet::has_command() { command -v "$1" >/dev/null 2>&1; }
-
-droplet::echo_error() { cat <<< "$@" 1>&2; }
-
-droplet::is_gnu_command() { "$1" --version 2>/dev/null | grep -q "GNU"; }
-
-droplet::use_gnu_command() {
-  local command="$1"
-
-  if droplet::is_gnu_command "${command}"; then
-    echo "${command}"
-    return
-  fi
-
-  if droplet::is_darwin \
-    && droplet::has_command "g${command}" \
-    && droplet::is_gnu_command "g${command}"; then
-    echo "g${command}"
-    return
-  fi
-
-  droplet::echo_error "GNU command \"${command}\" not found"
-  if droplet::is_darwin; then
-    droplet::echo_error "You are MacOS user, \"brew install coreutils\" is a good choice!"
-  fi
-  exit 1
-}
+droplet::is_darwin()  { [[ "$( uname )" == "Darwin"* ]]; }
 
 droplet::debug() {
   if [[ ${DROPLET_DEBUG:-notset} == "on" ]]; then
     printf "[DROPLET] %s\n" "$*" >&2
   fi
+}
+
+# borrowed from bats-core
+if command -v greadlink >/dev/null; then
+  droplet::readlinkf() {
+    greadlink -f "$1"
+  }
+else
+  droplet::readlinkf() {
+    readlink -f "$1"
+  }
+fi
+
+__fallback_to_readlinkf_posix() {
+  droplet::readlinkf() {
+    [ "${1:-}" ] || return 1
+    max_symlinks=40
+    CDPATH='' # to avoid changing to an unexpected directory
+
+    target=$1
+    [ -e "${target%/}" ] || target=${1%"${1##*[!/]}"} # trim trailing slashes
+    [ -d "${target:-/}" ] && target="$target/"
+
+    cd -P . 2>/dev/null || return 1
+    while [ "$max_symlinks" -ge 0 ] && max_symlinks=$((max_symlinks - 1)); do
+      if [ ! "$target" = "${target%/*}" ]; then
+        case $target in
+          /*) cd -P "${target%/*}/" 2>/dev/null || break ;;
+          *) cd -P "./${target%/*}" 2>/dev/null || break ;;
+        esac
+        target=${target##*/}
+      fi
+
+      if [ ! -L "$target" ]; then
+        target="${PWD%/}${target:+/}${target}"
+        printf '%s\n' "${target:-/}"
+        return 0
+      fi
+
+      # `ls -dl` format: "%s %u %s %s %u %s %s -> %s\n",
+      #   <file mode>, <number of links>, <owner name>, <group name>,
+      #   <size>, <date and time>, <pathname of link>, <contents of link>
+      # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/ls.html
+      link=$(ls -dl -- "$target" 2>/dev/null) || break
+      target=${link#*" $target -> "}
+    done
+    return 1
+  }
 }
 
 droplet::lookfor_paths() {
@@ -55,8 +69,7 @@ droplet::lookfor_paths() {
   fi
 
   if [[ "${name}" != "."* ]]; then
-    candidates+=("${sourced_by_dir}/vendor")
-    candidates+=("${DROPLET_SHELL_PATH}")
+    candidates+=("${sourced_by_dir}/droplets")
   fi
   echo "${candidates[@]}"
 }
@@ -64,7 +77,7 @@ droplet::lookfor_paths() {
 droplet::canonical_name() {
   local name="$1"
 
-  echo "$( ${droplet__GNU_READLINK} -f -e -q "${name}" )"
+  echo "$( droplet::readlinkf "${name}" )"
 }
 
 droplet::import_once() {
@@ -142,12 +155,9 @@ droplet::import_once_file() {
   export _DROPLET_IMPORT_ONCE
 }
 
-droplet::env_check() {
-  droplet__GNU_READLINK="$( droplet::use_gnu_command readlink )"
-}
-
 droplet() { droplet::import_once "$@"; }
 
-# Check environment, quit if necessary
-droplet::env_check
+if ! droplet::readlinkf "${BASH_SOURCE[0]}" &>/dev/null; then
+  __fallback_to_readlinkf_posix
+fi
 
