@@ -19,9 +19,9 @@ source droplet.sh
 then you can use `droplet` rather than `source` to import well-organized shell scripts:
 
 ```bash
-droplet "foo"      # => source "{lookfor_paths}/foo/droplet.sh"
-droplet "bar.sh"   # => source "{lookfor_paths}/bar.sh"
-droplet "/tmp/mutable.sh"  # => use absolute path
+droplet "bar.sh" # => source "{lookfor_paths}/bar.sh"
+droplet "github.com/ggicci/droplets/time.sh" # => source "{lookfor_paths}/github.com/ggicci/droplets/time.sh"
+droplet "/tmp/mutable.sh" # => source the absolute path
 ```
 
 ## The `lookfor_paths`
