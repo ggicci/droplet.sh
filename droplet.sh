@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 DROPLET_DEBUG=${DROPLET_DEBUG:-0}
+WD="$( cd "$( dirname "$0" )" && pwd )"
 
 droplet::debug() {
   if [[ ${DROPLET_DEBUG} == "1" ]]; then
@@ -57,17 +58,7 @@ __fallback_to_readlinkf_posix() {
 
 droplet::lookfor_paths() {
   local name="$1"
-  local candidates=()
-
-  if [[ "${name}" != "/"* ]]; then
-    local sourced_by_dir
-    sourced_by_dir="$( cd "$( dirname "$0" )" && pwd )"
-    candidates+=("${sourced_by_dir}")
-  fi
-
-  if [[ "${name}" != "."* ]]; then
-    candidates+=("${sourced_by_dir}/droplets")
-  fi
+  local candidates=( "$( pwd )" "$( pwd )/droplets" "${WD}" "${WD}/droplets" )
   echo "${candidates[@]}"
 }
 
